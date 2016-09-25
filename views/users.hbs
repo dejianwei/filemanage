@@ -1,0 +1,75 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>所有用户</h1>
+    <ol class="breadcrumb">
+        <li><a href="http://127.0.0.1:3000/home"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">users</li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">用户</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="filestable" class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>姓名</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each users}}
+                            <tr>
+                                <td>{{id}}</td>
+                                <td>{{name}}</td>
+                                <td>{{email}}</td>
+                                <td>{{role}}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modifycompetence">修改权限</button>
+                                        <button type="button" onclick="window.location.href='/yonghu?deleteuser=1&userid={{id}}'" class="btn btn-danger">删除</button>
+                                        <!--new folder Modal -->
+                                        <div class="modal fade" id="modifycompetence" tabindex="-1" role="dialog" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form action="/yonghu" method="post">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                                            <h4 class="modal-title" id="myModalLabel">设置权限</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-group">
+                                                                <input type="text" class="form-control" name="userid" placeholder="请输入用户id">
+                                                                <input type="text" class="form-control" name="competence" placeholder="请输入权限. eg. manage, user">
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-success">设置</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</section>

@@ -1,0 +1,149 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#newfolder">新建文件夹</button>
+    <!--new folder Modal -->
+    <div class="modal fade" id="newfolder" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/guidang{{currentpath}}?iscreatefolder=1" method="post">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="myModalLabel">新建文件夹</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="foldername" placeholder="请输入文件夹的名字">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">创建</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#uploadfile">上传文件</button>
+    <!--new file Modal -->
+    <div class="modal fade" id="uploadfile" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="/guidang{{currentpath}}?isuploadfile=1" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="myModalLabel">上传文件</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" id="fileid" name="fileid" placeholder="文件编号">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control"　id="filename" name="filename" placeholder="文件名称 eg.file1.txt">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control"　id="filecategory" name="filecategory" placeholder="文件分类">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control"　id="filedocuments" name="filedocuments" placeholder="文件份数">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" id="filepages" name="filepages" placeholder="文件页数">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control"　id="responsibleperson" name="responsibleperson" placeholder="责任人">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" id="filetime" name="filetime" placeholder="文件时间 eg. 2016-09-20">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" id="confidentialitype" name="confidentialitype" placeholder="密级 eg. open or inner or secret or top secret">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" id="saveperiod" name="saveperiod" placeholder="保存期限 eg. forever or short time or long time">
+                            </div>
+                        </div>
+                        <label for="InputFile">上传文件</label>
+                        <input type="file" id="InputFile" name="inputfile">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">上传</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <ol class="breadcrumb">
+        <li><a href="http://127.0.0.1:3000/home"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">guidang</li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h2 class="box-title">当前目录：{{currentpath}}</h2>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="filestable" class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>文件名</th>
+                            <th>文件日期</th>
+                            <th>保管日期</th>
+                            <th>责任者</th>
+                            <th>密级</th>
+                            {{#equals userrole 'manager'}}
+                                <th>操作</th>
+                            {{/equals}}
+                            <!--{{#equals userrole 'admin'}}-->
+                                <!--<th>操作</th>-->
+                            <!--{{/equals}}-->
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each files}}
+                            <tr>
+                                {{#if isdirectory}}
+                                    <td style="width: 10px"><span class="fa fa-folder-open"></span></td>
+                                {{else}}
+                                    <td style="width: 10px"><span class="fa fa-file"></span></td>
+                                {{/if}}
+                                <td><a href="/guidang{{path}}{{name}}?isdir={{isdirectory}}">{{name}}</a></td>
+                                <td>{{filetime}}</td>
+                                <td>{{savetime}}</td>
+                                <td>{{responsibleperson}}</td>
+                                <td>{{confidentialitype}}</td>
+                                {{#equals ../userrole 'manager'}}
+                                    <td>
+                                        <button type="button" onclick="window.location.href='/guidang{{path}}{{name}}?isdir={{isdirectory}}&deletefile=1&fileid={{id}}'" class="btn btn-danger">删除</button>
+                                    </td>
+                                {{/equals}}
+                                {{#equals ../userrole 'admin'}}
+                                    <td>
+                                        <button type="button" onclick="window.location.href='/guidang{{path}}{{name}}?isdir={{isdirectory}}&deletefile=1&fileid={{id}}'" class="btn btn-danger">删除</button>
+                                    </td>
+                                {{/equals}}
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</section>
+
+

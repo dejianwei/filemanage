@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <META http-equiv=Content-Type content="text/html; charset=utf-8">
+    <title>由于if功力不足引出的Helper - by 杨元</title>
+</head>
+<body>
+<p id="tableList">
+
+</p>
+
+<!--插件引用-->
+<!--<script type="text/javascript" src="script/jquery.js"></script>-->
+<!--<script type="text/javascript" src="script/handlebars-1.0.0.beta.6.js"></script>-->
+
+<!-- jQuery 2.2.3 -->
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<!--handlebars-->
+<script src="https://cloud.github.com/downloads/wycats/handlebars.js/handlebars-1.0.rc.1.min.js"></script>
+
+<!--Handlebars.js模版-->
+<!--Handlebars.js模版放在script标签中，保留了html原有层次结构,模版中要写一些操作语句-->
+<!--id可以用来唯一确定一个模版,type是模版固定的写法-->
+<script id="table-template" type="text/x-handlebars-template">
+    {{#equals role 'admin'}}
+    <p>I am admin</p>
+    {{/equals}}
+</script>
+
+<!--进行数据处理、html构造-->
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        //模拟的json对象
+        var role = 'admin';
+
+        //注册一个Handlebars模版，通过id找到某一个模版，获取模版的html框架
+        //$("#table-template").html()是jquery的语法，不懂的童鞋请恶补。。。
+        var myTemplate = Handlebars.compile($("#table-template").html());
+
+        //注册一个比较大小的Helper,判断v1是否大于v2
+        Handlebars.registerHelper("equals",function(v1,v2,options){
+            if(v1 == v2){
+                //满足添加继续执行
+                return options.fn(this);
+            }else{
+                //不满足条件执行{{else}}部分
+                return options.inverse(this);
+            }
+        });
+
+        //将json对象用刚刚注册的Handlebars模版封装，得到最终的html，插入到基础table中。
+        $('#tableList').html(myTemplate(role));
+    });
+</script>
+</body>
+</html>

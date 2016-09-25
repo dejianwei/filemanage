@@ -1,0 +1,55 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>借阅表</h1>
+    <ol class="breadcrumb">
+        <li><a href="http://127.0.0.1:3000/home"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">jieyue</li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">借阅</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="filestable" class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>借阅者</th>
+                            <th>邮箱</th>
+                            <th>文件编号</th>
+                            <th>文件名</th>
+                            <th>文件日期</th>
+                            <th>责任者</th>
+                            <th>密级</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each borrow}}
+                            <tr>
+                                <td style="width: 10px"><span class="fa fa-file"></span></td>
+                                <td>{{username}}</td>
+                                <td>{{email}}</td>
+                                <th>{{id}}</th>
+                                <td>{{filename}}</td>
+                                <td>{{filetime}}</td>
+                                <td>{{responsibleperson}}</td>
+                                <td>{{confidentialitype}}</td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</section>
+
+
