@@ -4,10 +4,10 @@
 
 #### 截图
 
-![image](https://github.com/dejianwei/filemanage/raw/master/screenshots/login.png)
+![image](https://github.com/dejianwei/filemanage/raw/master/screenshot/login.png)
 
-![image](https://github.com/dejianwei/filemanage/raw/master/screenshots/home.png)
+![image](https://github.com/dejianwei/filemanage/raw/master/screenshot/home.png)
 
-![image](https://github.com/dejianwei/filemanage/raw/master/screenshots/guidang.png)
+![image](https://github.com/dejianwei/filemanage/raw/master/screenshot/guidang.png)
 
-![image](https://github.com/dejianwei/filemanage/raw/master/screenshots/yonghu.png)
+![image](https://github.com/dejianwei/filemanage/raw/master/screenshot/yonghu.png)
