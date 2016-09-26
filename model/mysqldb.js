@@ -17,7 +17,10 @@ connection.connect(function (err) {
 
 module.exports = connection;
 
-// connection.query('select * from files f, users u, borrow b where b.user_id = u.id and b.file_id = f.id;', function(err, rows, fields) {
+// connection.query('select * from files where name like "%' + 'ui' + '%"', function(err, rows, fields) {
+//     if(err) {
+//         return console.log("search failed: " + err.message);
+//     }
 //     console.log(rows);
 // });
 //

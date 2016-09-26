@@ -4,6 +4,7 @@ var path = require('path');
 var connection = require('../model/mysqldb');
 var upload = require('../fileupload');
 var crypto = require('crypto');
+var urlencode = require('urlencode');
 
 var U = require('../model/user'),
     User = U.User;
@@ -14,6 +15,7 @@ var F = require('../model/file'),
 F.setConnection(connection);
 
 function checkLogin(req, res, next) {
+// console.log("req.session.user: " + req.session.user);
     if(!req.session.user) {
         req.flash('error', '未登录');
         return res.redirect('/login');
@@ -23,13 +25,13 @@ function checkLogin(req, res, next) {
 
 function checkNotLogin(req, res, next) {
     if(req.session.user) {
-        return res.redirect('home');
+        return res.redirect('/home');
     }
     next();
 }
 
 function checkRoleManage(req, res, next) {
-console.log("checkRoleManage: " + req.session.user.role);
+    console.log("checkRoleManage: " + req.session.user.role);
     var roles = ['manager', 'admin'];
     for(var i=0;i<roles.length;i++) {
         if(req.session.user.role == roles[i])
@@ -69,7 +71,7 @@ exports.route = function(app) {
             password = req.body.password;
         if(email == "" || password =="") {
             req.flash('error', "账号密码为空");
-            return res.redirect('./login');
+            return res.redirect('/login');
         }
 // console.log("email: " + email);
 // console.log("password: " + password);
@@ -77,12 +79,12 @@ exports.route = function(app) {
             if(err) {
                 req.flash('error', err);
 // console.log(err);
-                return res.redirect('./register');
+                return res.redirect('/register');
             }
             if(rows == null) {
 // console.log('此邮箱还没注册');
                 req.flash('error', '邮箱未注册');
-                return res.redirect('./login');
+                return res.redirect('/login');
             }
             var user = rows[0];
             var md5 = crypto.createHash('md5');
@@ -90,12 +92,12 @@ exports.route = function(app) {
             if(user.password != md5password) {
                 console.log("POST: 密码不正确");
                 req.flash('error', "密码不正确");
-                return res.redirect('./login');
+                return res.redirect('/login');
             }else{
-// console.log("登录成功");
+console.log("登录成功");
                 req.session.user = user;
                 // req.flash('success', "登录成功");
-                res.redirect('./home');
+                res.redirect('/home');
             }
         })
     });
@@ -180,8 +182,9 @@ exports.route = function(app) {
     app.get('/yuguidang*', checkLogin);
     app.get('/yuguidang*', checkRoleManage);
     app.get('/yuguidang*', function(req, res) {
+        var reqpath = urlencode.decode(req.path);
         var ygd = '/yuguidang';
-        var relpath = (req.path).substring(ygd.length);
+        var relpath = (reqpath).substring(ygd.length);
         var isdir = req.query.isdir,
             guidang = req.query.guidang,
             shanchu = req.query.shanchu,
@@ -228,8 +231,9 @@ exports.route = function(app) {
     app.get('/guidang*', checkLogin);
     app.get('/guidang*', function(req, res) {
         // eg. url: /guidang/dev/?isdir=1, relpath = /dev/, isdir = 1
+        var reqpath = urlencode.decode(req.path);
         var gd = '/guidang';
-        var relpath = (req.path).substring(gd.length);
+        var relpath = reqpath.substring(gd.length);
         var isdir = req.query.isdir,
             deletefile = req.query.deletefile,
             fileid = req.query.fileid;
@@ -244,7 +248,7 @@ exports.route = function(app) {
         if(isdir) {
             if(!_.isUndefined(deletefile)) {
                 File.deleteFolder(fileid);
-                res.redirect(path.normalize(req.path + '/..') + '?isdir=1');
+                res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
             }else{
                 File.getStored(relpath, function(err, files) {
                     if(err) req.flash('error', err);
@@ -260,7 +264,7 @@ exports.route = function(app) {
         }else{
             if(!_.isUndefined(deletefile)) {
                 File.deleteFile(fileid);
-                res.redirect(req.path + '?isdir=0');
+                res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
             }else{
                 var basename = path.basename(relpath);
                 var abspath = File.rootpath + '/' + basename;
@@ -278,6 +282,86 @@ exports.route = function(app) {
                 })
             }
         }
+    });
+
+    function createFile(req, relpath, fnmae) {
+// console.log('create file');
+        var fileid = req.body.fileid,
+            filename = req.body.filename,
+            filecategory = req.body.filecategory,
+            filedocuments = req.body.filedocuments,
+            filepages = req.body.filepages,
+            responsibleperson = req.body.responsibleperson,
+            filetime = req.body.filetime,
+            saveperiod = req.body.saveperiod,
+            confidentialitype = req.body.confidentialitype;
+        if( '' == fileid); // TODO
+        if( '' == filename); //
+        if( '' == filecategory); //
+        if( '' == filedocuments); //
+        if( '' == responsibleperson); //
+        if( '' == filetime); //
+        if( '' == saveperiod); //
+        if( '' == confidentialitype); //
+// console.log("req.file.originalname: " + req.file.originalname);
+// console.log("input file name: " + filename);
+        if(req.file.originalname != filename) {
+            filename = req.file.originalname;
+        }
+        var filepath = relpath;
+        var file = new File();
+        file.createFile({
+            id: fileid, name: filename, category: filecategory,
+            responsibleperson: responsibleperson, filetime: filetime, path: filepath,
+            pages: filepages, documentnum: filedocuments, saveperiod: saveperiod,
+            confidentialitype: confidentialitype
+        });
+        file.save();
+        // 当用户上传一个文件后, 先设置为store,这样可以在guidang中看到
+        // 用户就会觉得文件上传成功, 否则用户看不到上传的文件,会很奇怪的
+        setTimeout(function() {
+            file.store2unstore();
+        }, 1000*7);
+    }
+
+    function createFolder(req, relpath) {
+// console.log('create folder');
+        var foldername = req.body.foldername;
+        if('' == foldername) {
+            // TODO
+        }
+        var folderpath = relpath;
+        var folder = new File();
+        folder.createFolder({name: foldername, path: folderpath});
+// console.log(folder);
+        folder.save();
+    }
+
+    /**
+     * POST /guidang/?iscreatefolder=1   // 在/目录下创建文件夹
+     * POST /guidang/?isuploadfile=1     // 在/目录下上传一个文件
+     */
+    app.post('/guidang*', checkLogin);
+    app.post('/guidang*', upload.single('inputfile'), function(req, res) {
+        var reqpath = urlencode.decode(req.path);// 解决路径中出现中文的问题
+        var gd = '/guidang';
+        var relpath = reqpath.substring(gd.length);
+        var iscreatefolder = req.query.iscreatefolder,
+            isuploadfile = req.query.isuploadfile;
+        if(!_.isUndefined(iscreatefolder)) {
+            iscreatefolder = parseInt(iscreatefolder);
+            if(iscreatefolder) {
+                createFolder(req, relpath);
+            }
+        }
+
+        if(!_.isUndefined(isuploadfile)) {
+            isuploadfile = parseInt(isuploadfile);
+            if(isuploadfile) {
+                createFile(req, relpath);
+            }
+        }
+        res.redirect(reqpath + '?isdir=1');
     });
 
     app.get('/yonghu', checkLogin);
@@ -329,73 +413,23 @@ exports.route = function(app) {
         });
     });
 
-    function createFile(req, relpath) {
-// console.log('create file');
-        var fileid = req.body.fileid,
-            filename = req.body.filename,
-            filecategory = req.body.filecategory,
-            filedocuments = req.body.filedocuments,
-            filepages = req.body.filepages,
-            responsibleperson = req.body.responsibleperson,
-            filetime = req.body.filetime,
-            saveperiod = req.body.saveperiod,
-            confidentialitype = req.body.confidentialitype;
-        if( '' == fileid); // TODO
-        if( '' == filename); //
-        if( '' == filecategory); //
-        if( '' == filedocuments); //
-        if( '' == responsibleperson) //
-            if( '' == filetime); //
-        if( '' == saveperiod); //
-        if( '' == confidentialitype); //
-        var filepath = relpath;
-        var file = new File();
-        file.createFile({
-            id: fileid, name: filename, category: filecategory,
-            responsibleperson: responsibleperson, filetime: filetime, path: filepath,
-            pages: filepages, documentnum: filedocuments, saveperiod: saveperiod,
-            confidentialitype: confidentialitype
+    app.get('/search', function(req, res) {
+        var q = req.query.q;
+        File.search(q, function(err, files) {
+            if(err) return;
+            res.render('search',{
+                files: files,
+                username: req.session.user.name,
+                useremail: req.session.user.email,
+                userrole: req.session.user.role
+            });
         });
-// console.log(file);
-        file.save();
-    }
+    })
 
-    function createFolder(req, relpath) {
-// console.log('create folder');
-        var foldername = req.body.foldername;
-        if('' == foldername) {
-            // TODO
-        }
-        var folderpath = relpath;
-        var folder = new File();
-        folder.createFolder({name: foldername, path: folderpath});
-// console.log(folder);
-        folder.save();
-    }
-
-    /**
-     * POST /guidang/?iscreatefolder=1   // 在/目录下创建文件夹
-     * POST /guidang/?isuploadfile=1     // 在/目录下上传一个文件
-     */
-    app.post('/guidang*', checkLogin);
-    app.post('/guidang*', upload.single('inputfile'), function(req, res) {
-        var gd = '/guidang';
-        var relpath = (req.path).substring(gd.length);
-        var iscreatefolder = req.query.iscreatefolder,
-            isuploadfile = req.query.isuploadfile;
-        if(!_.isUndefined(iscreatefolder)) {
-            iscreatefolder = parseInt(iscreatefolder);
-            if(iscreatefolder) {
-                createFolder(req, relpath);
-            }
-        }
-
-        if(!_.isUndefined(isuploadfile)) {
-            isuploadfile = parseInt(isuploadfile);
-            if(isuploadfile) {
-                createFile(req, relpath);
-            }
-        }
-        res.redirect(req.path + '?isdir=1');
+    app.get('/test*', function(req, res) {
+        var path = urlencode.decode(req.path);
+        req.path = path;
+        console.log("path: " + req.path);
+        console.log("query zh: " + req.query.zh);
     });
 }

@@ -98,17 +98,20 @@
                         <thead>
                         <tr>
                             <th>#</th>
+                            <th>编号</th>
                             <th>文件名</th>
+                            <th>文件分类</th>
                             <th>文件日期</th>
                             <th>保管日期</th>
+                            <th>保管时间</th>
                             <th>责任者</th>
                             <th>密级</th>
                             {{#equals userrole 'manager'}}
                                 <th>操作</th>
                             {{/equals}}
-                            <!--{{#equals userrole 'admin'}}-->
-                                <!--<th>操作</th>-->
-                            <!--{{/equals}}-->
+                            {{#equals userrole 'admin'}}
+                                <th>操作</th>
+                            {{/equals}}
                         </tr>
                         </thead>
                         <tbody>
@@ -119,9 +122,12 @@
                                 {{else}}
                                     <td style="width: 10px"><span class="fa fa-file"></span></td>
                                 {{/if}}
+                                <td>{{id}}</td>
                                 <td><a href="/guidang{{path}}{{name}}?isdir={{isdirectory}}">{{name}}</a></td>
+                                <td>{{category}}</td>
                                 <td>{{filetime}}</td>
                                 <td>{{savetime}}</td>
+                                <th>{{saveperiod}}</th>
                                 <td>{{responsibleperson}}</td>
                                 <td>{{confidentialitype}}</td>
                                 {{#equals ../userrole 'manager'}}

@@ -26,7 +26,7 @@ var sessionStore = new MySQLStore(options);
 
 var app = express();
 
-// view engine setup
+// 自定义handlebars helper
 hbs.registerHelper("equals",function(v1,v2,options){
     if(v1 == v2){
         return options.fn(this);
@@ -34,6 +34,7 @@ hbs.registerHelper("equals",function(v1,v2,options){
         return options.inverse(this);
     }
 });
+// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
@@ -46,7 +47,7 @@ app.use(session({
     store: sessionStore,
     resave: true,
     saveUninitialized: true,
-    cookie: { cookie: { maxAge: 60000 }}
+    cookie: { cookie: { maxAge: 24*60*60}}
 }));
 
 app.use(flash()); // 开启session功能后,使用flash

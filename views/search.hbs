@@ -1,0 +1,56 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <ol class="breadcrumb">
+        <li><a href="http://127.0.0.1:3000/home"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">search</li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h2 class="box-title">搜索结果</h2>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="filestable" class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>编号</th>
+                            <th>文件名</th>
+                            <th>文件分类</th>
+                            <th>文件日期</th>
+                            <th>保管日期</th>
+                            <th>保管时间</th>
+                            <th>责任者</th>
+                            <th>密级</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each files}}
+                            <tr>
+                                <td style="width: 10px"><span class="fa fa-file"></span></td>
+                                <td>{{id}}</td>
+                                <td><a href="/guidang{{path}}{{name}}?isdir={{isdirectory}}">{{name}}</a></td>
+                                <td>{{category}}</td>
+                                <td>{{filetime}}</td>
+                                <td>{{savetime}}</td>
+                                <th>{{saveperiod}}</th>
+                                <td>{{responsibleperson}}</td>
+                                <td>{{confidentialitype}}</td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+</section>
+
+

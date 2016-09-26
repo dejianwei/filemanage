@@ -21,12 +21,17 @@ User.prototype.save = function(callback) {
     var user = {
         name: this.name,
         password: this.password,
-        email: this.email
+        email: this.email,
+        role: this.role
     };
     connection.query('insert into users (name, password, email, role) values ("'
-        + user.name + '","' + user.password + '" ,"'+ user.email + '" ,"'+ user.role + '")',
+        + user.name + '","' + user.password + '","'+ user.email + '","'+ user.role + '")',
         function(err, row, fields) {
-            if(err) return callback(err);
+            if(err) {
+                console.log('save user error ' + err.message);
+                return callback(err);
+            }
+            console.log('save user success ');
             callback(null);
         })
     ;
@@ -34,7 +39,11 @@ User.prototype.save = function(callback) {
 
 User.get = function(email, callback) {
     connection.query('select * from users where email = "' + email + '"', function(err, rows, fields) {
-        if(err) return callback(err);
+        if(err) {
+            console.log('get user error: ' + err.message);
+            return callback(err);
+        }
+        console.log('get user success ' );
         if(rows.length == 0) {
             callback(null, null);
         }else{
@@ -45,14 +54,21 @@ User.get = function(email, callback) {
 
 User.getAll = function(callback) {
     connection.query('select * from users', function(err, rows, fields) {
-        if(err) return callback(err);
+        if(err) {
+            console.log('get all user error: ' + err.message);
+            return callback(err);
+        }
+        console.log('get all user success.');
         callback(null, rows);
     });
 }
 
 User.moidfyCompetence = function(userid, rolename) {
     connection.query('UPDATE users SET role="' + rolename + '" WHERE id="' + userid + '"', function(err, rows, fields) {
-        if(err) return console.log("fail to modify users competence whose id = " + userid);
+        if(err) {
+            console.log("fail to modify users competence whose id = " + userid)
+            return;
+        }
         console.log("success to modify users competence whose id = " + userid)
     });
 }

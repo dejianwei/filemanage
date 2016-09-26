@@ -4,6 +4,7 @@
 
 var moment = require('moment');
 var momenttz = require('moment-timezone');
+var fs = require('fs');
 
 var connection;
 
@@ -92,7 +93,11 @@ function convertCST2UTC(rows) {
 File.getStored = function(path, callback) {
     // get(path, 1, callback);
     connection.query('select * from files where path = "' + path + '" and isstored = "' + 1 + '"', function (err, rows, fields) {
-        if (err) return callback(err);
+        if (err) {
+            console.log('get stored error: ' + err.message);
+            return callback(err);
+        }
+        console.log('get stored success');
         convertCST2UTC(rows);
         callback(null, rows);
     });
@@ -101,7 +106,11 @@ File.getStored = function(path, callback) {
 File.getUnStored = function(path, callback) {
     // get(path, 0, callback);
     connection.query('select * from files where isstored = "' + 0 + '"', function (err, rows, fields) {
-        if (err) return callback(err);
+        if (err) {
+            console.log('get unstored error: ' + err.message);
+            return callback(err);
+        }
+        console.log('get unstored success: ');
         convertCST2UTC(rows);
         callback(null, rows);
     });
@@ -114,8 +123,11 @@ File.getUnStored = function(path, callback) {
  */
 File.getBorrowed = function(callback) {
     connection.query('select u.name as username, u.email, f.id, f.name as filename, f.filetime, f.responsibleperson, f.confidentialitype from files f, users u, borrow b where b.user_id = u.id and b.file_id = f.id', function (err, rows, fields) {
-        if (err) return callback(err);
-        console.log(rows);
+        if (err) {
+            console.log('get borrowed error: ' + err.message);
+            return callback(err);
+        }
+        console.log('get borrowed success ');
         convertCST2UTC(rows);
         callback(null, rows);
     });
@@ -139,28 +151,49 @@ File.deleteFolder = function(fileid) {
             return console.log(err.message);
         }
         console.log('success to delete folder that id = ' + fileid);
-
-    });
-
-    // 文件夹的id就是文件夹下文件的路径
-    connection.query('DELETE FROM files WHERE path="' + fileid + '"', function(err, rows, fields){
-        if(err) {
-            console.log('failed to delete file of folder that path = ' + fileid );
-            return console.log(err.message);
-        }
-        console.log('success to delete file of folder that path = ' + fileid);
-
+        connection.query('select id, category from files where path="' + fileid + '"', function(err, rows, fields){
+console.log(rows);
+            if(err) return console.log(err.message);
+            for(var i=0;i<rows.length;i++) {
+                if(rows[i].category == 'folder') File.deleteFolder(rows[i].id);
+                else File.deleteFile(rows[i].id);
+            }
+        });
     });
 }
 
 File.deleteFile = function(fileid) {
-    connection.query('DELETE FROM files WHERE id="' + fileid + '"', function(err, rows, fields){
+    connection.query('select path, name from files where id ="' + fileid + '"', function(err, rows, fields) {
         if(err) {
-            console.log('failed to delete file that id = ' + fileid );
-            return err;
+            console.log('failed to get file path and name ' + err.message);
+            return;
         }
-        console.log('success to delete file that id = ' + fileid);
+        console.log(rows);
+        var filepath = File.rootpath + '/' + rows[0].name;
+        fs.unlink(filepath, function(err){
+            if(err) console.log(err);
+            console.log('sucess to remove file.');
+        });
+        connection.query('DELETE FROM files WHERE id="' + fileid + '"', function(err, rows, fields){
+            if(err) {
+                console.log('failed to delete file that id = ' + fileid );
+                console.log(err.message);
+                return;
+            }
+            console.log('success to delete file that id = ' + fileid);
+        });
+    });
+}
 
+File.search = function(q, callback) {
+    connection.query('select * from files where name like "%' + q + '%"', function(err, rows, fields) {
+        if(err) {
+            callback(err);
+            return console.log("search failed: " + err.message);
+        }
+        convertCST2UTC(rows);
+        callback(null, rows);
+        console.log('search success');
     });
 }
 // INSERT INTO `filemanage`.`files`
@@ -177,7 +210,22 @@ File.prototype.save = function(){
         this.savetime + '", "' + this.filetime + '", "'+ this.saveperiod + '", "' + this.confidentialitype + '", "' + this.path + '", "' + this.isdirectory + '", "' + this.isstored +'")';
 // console.log(sql);
     connection.query(sql, function(err, rows, fields){
-        if(err) return console.log(err.message);
+        if(err) {
+            console.log('save file error' + err.message);
+            return console.log(err.message);
+        }
+        console.log('save file success');
+    });
+}
+
+File.prototype.store2unstore = function() {
+    var that = this;
+    connection.query('UPDATE files SET isstored=0 WHERE id="' + this.id +'"', function(err, rows, fields) {
+        if(err) {
+            console.log('set new file unstore faild ' + err.message);
+            return;
+        }
+        console.log('set new file unstore success that id = ' + that.id);
     });
 }
 

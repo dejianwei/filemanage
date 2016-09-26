@@ -13,8 +13,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Bootstrap 3.3.6 -->
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     <!--&lt;!&ndash; AdminLTE Skins. We have chosen the skin-blue for this starter-->
-          <!--page. However, you can choose any other skin. Make sure you-->
-          <!--apply the skin class to the body tag so the changes take effect.-->
+    <!--page. However, you can choose any other skin. Make sure you-->
+    <!--apply the skin class to the body tag so the changes take effect.-->
     <!--&ndash;&gt;-->
     <link rel="stylesheet" href="/dist/css/skins/skin-green.min.css">
 
@@ -169,7 +169,7 @@ desired effect
 
                                 <p>
                                     {{username}}
-                                    <p>E-mail: {{useremail}}</p>
+                                <p>E-mail: {{useremail}}</p>
                                 </p>
                             </li>
                             <li class="user-footer">
@@ -192,12 +192,12 @@ desired effect
         <!-- sidebar: style can be found in sidebar.less -->
         <section class="sidebar">
 
-            <!--search form (Optional)-->
-            <form action="#" method="get" class="sidebar-form">
+            <!-- search form -->
+            <form action="http://127.0.0.1:3000/search" method="get" class="sidebar-form">
                 <div class="input-group">
                     <input type="text" name="q" class="form-control" placeholder="Search...">
                     <span class="input-group-btn">
-                <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
+                <button type="submit" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
                 </button>
               </span>
                 </div>
@@ -242,10 +242,11 @@ desired effect
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
+
         {{{body}}}
     </div>
     <!-- /.content-wrapper -->
-d
+    d
     <!-- Main Footer -->
     <footer class="main-footer">
         <!-- To the right -->
@@ -266,13 +267,8 @@ d
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      <!--Both of these plugins are recommended to enhance the-->
-     <!--user experience. Slimscroll is required when using the-->
-     <!--fixed layout. &ndash;&gt;-->
-<!-- DataTables -->
-<script src="/plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="/plugins/datatables/dataTables.bootstrap.min.js"></script>
-<!-- SlimScroll -->
-<script src="/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+<!--user experience. Slimscroll is required when using the-->
+<!--fixed layout. &ndash;&gt;-->
 
 <!-- jQuery 2.2.3 -->
 <script src="/plugins/jQuery/jquery-2.2.3.min.js"></script>
@@ -301,17 +297,19 @@ d
 <script src="/plugins/datepicker/bootstrap-datepicker.js"></script>
 <!-- Bootstrap WYSIHTML5 -->
 <script src="/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script>
-<!-- Slimscroll -->
+<!-- DataTables -->
+<script src="/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/plugins/datatables/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
 <script src="/plugins/slimScroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
 <script src="/plugins/fastclick/fastclick.js"></script>
 <!-- AdminLTE App -->
 <script src="/dist/js/app.min.js"></script>
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="/dist/js/pages/dashboard.js"></script>
+<!--<script src="/dist/js/pages/dashboard.js"></script>-->
 <!-- AdminLTE for demo purposes -->
 <script src="/dist/js/demo.js"></script>
-
 
 <script>
     $(function () {

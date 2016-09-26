@@ -17,7 +17,7 @@ var storage = multer.diskStorage({
 
 //添加配置文件到muler对象。
 var upload = multer({
-    storage: storage,
+    storage: storage
     //其他设置请参考multer的limits
     //limits:{}
 });
