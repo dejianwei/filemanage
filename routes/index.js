@@ -94,7 +94,7 @@ exports.route = function(app) {
                 req.flash('error', "密码不正确");
                 return res.redirect('/login');
             }else{
-console.log("登录成功");
+                console.log("登录成功");
                 req.session.user = user;
                 // req.flash('success', "登录成功");
                 res.redirect('/home');
@@ -197,13 +197,18 @@ console.log("登录成功");
             isdir = parseInt(isdir);
         }
         if(isdir) {
-            File.getUnStored(relpath, function(err, files) {
-                if(err) req.flash('error', err);
+            File.getUnStored(relpath, function(errmessage, files) {
+                if(errmessage) {
+                    req.flash('error', errmessage)
+                    // 这里如果在回到yuguidang, 那么可能会在这里无限循环
+                    return res.redirect('/guidang');
+                }
                 res.render('yuguidang', {
                     files: files,
                     username: req.session.user.name,
                     useremail: req.session.user.email,
-                    userrole: req.session.user.role
+                    userrole: req.session.user.role,
+                    error: req.flash('error').toString()
                 })
             });
         }else{
@@ -212,10 +217,20 @@ console.log("登录成功");
             fs.exists(abspath, function(exists) {
                 if(exists) {
                     fs.readFile(abspath, function(err, data) {
-                        if(err) req.flash('error', err);
+                        if(err) {
+                            req.flash('error', '读取文件出错.');
+                            return console.log(err.message);
+                        }
                         res.send(data);
                     });
-                }else req.flash("error", abspath + "does not exists!!");
+                }else {
+                    if(!_.isUndefined(fileid)) {
+                        File.deleteFile(fileid, function(errmessage) {
+                            if(errmessage) return req.flash('error', errmessage);
+                            res.redirect('/yuguidang');
+                        });
+                    }
+                }
             });
         }
         if(!_.isUndefined(guidang)) {
@@ -247,8 +262,11 @@ console.log("登录成功");
 
         if(isdir) {
             if(!_.isUndefined(deletefile)) {
-                File.deleteFolder(fileid);
-                res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
+                File.deleteFolder(fileid, function(errmessage) {
+                    if(errmessage) return req.flash('error', errmessage);
+                    res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
+                });
+
             }else{
                 File.getStored(relpath, function(err, files) {
                     if(err) req.flash('error', err);
@@ -257,27 +275,42 @@ console.log("登录成功");
                         files: files,
                         username: req.session.user.name,
                         useremail: req.session.user.email,
-                        userrole: req.session.user.role
+                        userrole: req.session.user.role,
+                        error: req.flash('error').toString()
                     });
                 })
             }
         }else{
             if(!_.isUndefined(deletefile)) {
-                File.deleteFile(fileid);
-                res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
+                File.deleteFile(fileid, function(errmessage) {
+                    if(errmessage) return req.flash('error', errmessage);
+                    res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
+                });
             }else{
+                /**
+                 * 请求发送文件给浏览器,
+                 * 如果文件存在就发送过去
+                 * 不存在, 则删除数据库中此条文件的记录
+                 */
                 var basename = path.basename(relpath);
                 var abspath = File.rootpath + '/' + basename;
                 fs.exists(abspath, function(exists) {
                     if(exists) {
                         fs.readFile(abspath, function(err, data) {
-                            if(err) req.flash('error', err);
+                            if(err) {
+                                req.flash('error', '读取文件出错.')
+                                return console.log(err.message);
+                            }
                             res.send(data);
-                            console.log('success send file that name = ' + basename);
                         });
                     }else {
-                        // req.flash("error", abspath + "does not exists!!");
-                        console.log('failed to send file that name = ' + basename);
+                        req.flash("error", relpath + " does not exists!!");
+                        if(!_.isUndefined(fileid)) {
+                            File.deleteFile(fileid, function(errmessage) {
+                                if(errmessage) return req.flash('error', errmessage);
+                                res.redirect(path.normalize(reqpath + '/..') + '?isdir=1');
+                            });
+                        }
                     }
                 })
             }
@@ -425,11 +458,4 @@ console.log("登录成功");
             });
         });
     })
-
-    app.get('/test*', function(req, res) {
-        var path = urlencode.decode(req.path);
-        req.path = path;
-        console.log("path: " + req.path);
-        console.log("query zh: " + req.query.zh);
-    });
 }

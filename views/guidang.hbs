@@ -91,6 +91,9 @@
             <div class="box">
                 <div class="box-header">
                     <h2 class="box-title">当前目录：{{currentpath}}</h2>
+                    <span class="pull-right-container">
+                        <p class="pull-right"><font size="3" face="arial" color="red">{{error}}</font></p>
+                    </span>
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body">
@@ -123,7 +126,7 @@
                                     <td style="width: 10px"><span class="fa fa-file"></span></td>
                                 {{/if}}
                                 <td>{{id}}</td>
-                                <td><a href="/guidang{{path}}{{name}}?isdir={{isdirectory}}">{{name}}</a></td>
+                                <td><a href="/guidang{{path}}{{name}}?isdir={{isdirectory}}&fileid={{id}}">{{name}}</a></td>
                                 <td>{{category}}</td>
                                 <td>{{filetime}}</td>
                                 <td>{{savetime}}</td>

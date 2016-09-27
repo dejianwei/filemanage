@@ -107,10 +107,10 @@ File.getUnStored = function(path, callback) {
     // get(path, 0, callback);
     connection.query('select * from files where isstored = "' + 0 + '"', function (err, rows, fields) {
         if (err) {
-            console.log('get unstored error: ' + err.message);
-            return callback(err);
+            callback('failed to get unstored file.');
+            return console.log(err.message);
+
         }
-        console.log('get unstored success: ');
         convertCST2UTC(rows);
         callback(null, rows);
     });
@@ -143,17 +143,17 @@ File.stored = function(fileid) {
     });
 }
 
-File.deleteFolder = function(fileid) {
-
+File.deleteFolder = function(fileid, callback) {
     connection.query('DELETE FROM files WHERE id="' + fileid + '"', function(err, rows, fields){
         if(err) {
-            console.log('failed to delete folder that id = ' + fileid );
+            callback('delete folder failed.');
             return console.log(err.message);
         }
-        console.log('success to delete folder that id = ' + fileid);
         connection.query('select id, category from files where path="' + fileid + '"', function(err, rows, fields){
-console.log(rows);
-            if(err) return console.log(err.message);
+            if(err) {
+                callback('delete folder failed.');
+                return console.log(err.message);
+            }
             for(var i=0;i<rows.length;i++) {
                 if(rows[i].category == 'folder') File.deleteFolder(rows[i].id);
                 else File.deleteFile(rows[i].id);
@@ -162,27 +162,26 @@ console.log(rows);
     });
 }
 
-File.deleteFile = function(fileid) {
+File.deleteFile = function(fileid, callback) {
     connection.query('select path, name from files where id ="' + fileid + '"', function(err, rows, fields) {
         if(err) {
-            console.log('failed to get file path and name ' + err.message);
-            return;
+            callback('delete file failed.');
+            return console.log(err.message);
         }
-        console.log(rows);
+        // console.log(rows);
         var filepath = File.rootpath + '/' + rows[0].name;
         fs.unlink(filepath, function(err){
-            if(err) console.log(err);
-            console.log('sucess to remove file.');
+            if(err) {
+                return console.log(err.message);
+            }
         });
         connection.query('DELETE FROM files WHERE id="' + fileid + '"', function(err, rows, fields){
             if(err) {
-                console.log('failed to delete file that id = ' + fileid );
-                console.log(err.message);
-                return;
+                return console.log(err.message);
             }
-            console.log('success to delete file that id = ' + fileid);
         });
     });
+    callback(null);
 }
 
 File.search = function(q, callback) {
