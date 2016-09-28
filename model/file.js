@@ -5,7 +5,9 @@
 var moment = require('moment');
 var momenttz = require('moment-timezone');
 var fs = require('fs');
+var settings = require('../settings');
 
+// 连接数据库的对象
 var connection;
 
 /**
@@ -62,8 +64,9 @@ exports.setConnection = function(conn) {
     connection = conn;
 }
 
-File.rootpath = '/home/xiaowei/code/web/filemanage/files';
+File.rootpath = settings.filesrootpath;
 
+// 数据库中的时间表示形式转换成 YYYY-MM-DD的形式
 function convertCST2UTC(rows) {
     var jun, i;
     for(i=0;i<rows.length;i++) {
@@ -104,7 +107,6 @@ File.getStored = function(path, callback) {
 }
 
 File.getUnStored = function(path, callback) {
-    // get(path, 0, callback);
     connection.query('select * from files where isstored = "' + 0 + '"', function (err, rows, fields) {
         if (err) {
             callback('failed to get unstored file.');
@@ -117,6 +119,8 @@ File.getUnStored = function(path, callback) {
 }
 
 /**
+ * TODO Borrow是一张表, getBorrowed应该包含在borrow对象的方法里面
+ *
  * 在执行联表查询的时候，不同表中相同命名的属性会被覆盖
  * 因此这里用as重新定了属性的值
  * @param callback
@@ -143,6 +147,11 @@ File.stored = function(fileid) {
     });
 }
 
+/**
+ * 递归的删除数据库中选中的的文件夹
+ * @param fileid
+ * @param callback
+ */
 File.deleteFolder = function(fileid, callback) {
     connection.query('DELETE FROM files WHERE id="' + fileid + '"', function(err, rows, fields){
         if(err) {
@@ -195,10 +204,7 @@ File.search = function(q, callback) {
         console.log('search success');
     });
 }
-// INSERT INTO `filemanage`.`files`
-// (`name`, `category`, `page`, `documentnum`, `borrowed`, `responsibleperson`, `savetime`, `filetime`, `saveperiod`, `confidentialitype`, `path`, `isdirectory`, `isstored`)
-// VALUES
-// ('file7.txt', 'test', '1', '1', '0', 'wei', '2016-09-24', '2016-09-24', 'forever', 'inner', '/', '0', '1');
+
 File.prototype.save = function(){
 // console.log("save file to database");
     var sql = 'INSERT INTO files ' +
@@ -207,7 +213,7 @@ File.prototype.save = function(){
         'VALUES' +
         '("' + this.id + '", "' + this.name + '","' + this.category + '", "' + this.page + '", "' + this.documentnum + '", "' + this.borrowed + '", "' + this.responsibleperson + '", "' +
         this.savetime + '", "' + this.filetime + '", "'+ this.saveperiod + '", "' + this.confidentialitype + '", "' + this.path + '", "' + this.isdirectory + '", "' + this.isstored +'")';
-// console.log(sql);
+
     connection.query(sql, function(err, rows, fields){
         if(err) {
             console.log('save file error' + err.message);

@@ -3,12 +3,9 @@
  */
 
 var mysql = require('mysql');
-var connection = mysql.createConnection({
-    host: '127.0.01',
-    user: 'root',
-    password: 'root',
-    database: 'filemanage'
-});
+var settings = require('../settings');
+
+var connection = mysql.createConnection(settings.mysqlsettings);
 
 connection.connect(function (err) {
     if(err) return console.error("error connecting: " + err.stack);
@@ -16,12 +13,3 @@ connection.connect(function (err) {
 });
 
 module.exports = connection;
-
-// connection.query('select * from files where name like "%' + 'ui' + '%"', function(err, rows, fields) {
-//     if(err) {
-//         return console.log("search failed: " + err.message);
-//     }
-//     console.log(rows);
-// });
-//
-// connection.end();

@@ -4,6 +4,7 @@ var path = require('path');
 var connection = require('../model/mysqldb');
 var upload = require('../fileupload');
 var crypto = require('crypto');
+// req.path中如果是中文, 是urlencode编码, 需要转成utf编码
 var urlencode = require('urlencode');
 
 var U = require('../model/user'),
@@ -15,7 +16,6 @@ var F = require('../model/file'),
 F.setConnection(connection);
 
 function checkLogin(req, res, next) {
-// console.log("req.session.user: " + req.session.user);
     if(!req.session.user) {
         req.flash('error', '未登录');
         return res.redirect('/login');
@@ -65,6 +65,9 @@ exports.route = function(app) {
         });
     });
 
+    /**
+     * 根据输入的邮箱, 从数据库中获取密码, 检测米买是否一致
+     */
     app.post('/login', checkNotLogin);
     app.post('/login', function(req, res) {
         var email = req.body.email,
@@ -73,16 +76,12 @@ exports.route = function(app) {
             req.flash('error', "账号密码为空");
             return res.redirect('/login');
         }
-// console.log("email: " + email);
-// console.log("password: " + password);
         User.get(email, function(err, rows) {
             if(err) {
                 req.flash('error', err);
-// console.log(err);
                 return res.redirect('/register');
             }
             if(rows == null) {
-// console.log('此邮箱还没注册');
                 req.flash('error', '邮箱未注册');
                 return res.redirect('/login');
             }
@@ -90,13 +89,10 @@ exports.route = function(app) {
             var md5 = crypto.createHash('md5');
             md5password = md5.update(password).digest('hex');
             if(user.password != md5password) {
-                console.log("POST: 密码不正确");
                 req.flash('error', "密码不正确");
                 return res.redirect('/login');
             }else{
-                console.log("登录成功");
                 req.session.user = user;
-                // req.flash('success', "登录成功");
                 res.redirect('/home');
             }
         })
@@ -110,29 +106,25 @@ exports.route = function(app) {
         });
     });
 
+    /**
+     * 根据输入的信息创建新用户, 默认角色为User
+     */
     app.post('/register', checkNotLogin);
     app.post('/register', function(req, res) {
         var name = req.body.name,
             email = req.body.email,
             password = req.body.password,
             password_repeat = req.body['password-repeat'];
-        // console.log("name: " + name);
-        // console.log("email: " + email);
-        // console.log("password: " + password);
-        // console.log("password_repeat: " + password_repeat);
         if(name == "" || email == "" || password == "" || password_repeat == "") {
             req.flash('error', '信息不完整');
-// console.log('请将信息填写完整');
             return res.redirect('/register');
         }
         if(password_repeat != password) {
             req.flash('error', '密码不一致');
-// console.log('两次输入的密码不一致');
             return res.redirect('/register');
         }
         var md5 = crypto.createHash('md5');
         password = md5.update(req.body.password).digest('hex');
-        // console.log(password);
         var newUser = new User({
             name: name,
             password: password,
@@ -142,11 +134,9 @@ exports.route = function(app) {
         User.get(newUser.email, function(err, rows){
             if(err) {
                 req.flash('error', err)
-// console.log(err);
                 return res.redirect('/register');
             }
             if(rows) {
-// console.log("the name has been registerred");
                 req.flash('error', '邮箱被注册了');
                 return res.redirect('/register');
             }
@@ -154,17 +144,15 @@ exports.route = function(app) {
             newUser.save(function(err){
                 if(err) {
                     req.flash('error', err);
-// console.log(err);
                     return res.redirect('/register');
                 }
                 req.session.user = newUser;// 用户信息存如session
-                // req.flash('success', '注册成功');
                 res.redirect('/home');
             });
         });
     });
 
-    app.get('/register', checkLogin);
+    app.get('/logout', checkLogin);
     app.get('/logout', function(req, res) {
         req.session.user = null;
         res.redirect('/login');
@@ -179,6 +167,18 @@ exports.route = function(app) {
         });
     });
 
+    /**
+     * TODO
+     * 预归档的初始设计是文件夹形式, 后来为了简单使用了表格形式
+     * 如果使用文件夹形式, 那么这个文件夹里面如果有多个文件, 其中部分文件已归档,部分文件未归档
+     * 那这个文件夹是放在已归档,还是放在预归档,还是都放, 有点麻烦
+     *
+     * 在url后面有访问的路径, 解析这些路径
+     * isdir=0 是文件, 直接发送文件内容给浏览器
+     * isdir=1 是文件夹, 返回这个文件夹下的文件和文件夹表格
+     * shanchu, 删除文件, 在删除文件以及在数据库中的记录
+     * guidang, 将文件的isstored属性由0变成1
+     */
     app.get('/yuguidang*', checkLogin);
     app.get('/yuguidang*', checkRoleManage);
     app.get('/yuguidang*', function(req, res) {
@@ -243,9 +243,14 @@ exports.route = function(app) {
         }
     });
 
+    /**
+     * 在url后面有访问的路径, 解析这些路径
+     * isdir=0 是文件, 直接发送文件内容给浏览器
+     * isdir=1 是文件夹, 返回这个文件夹下的文件和文件夹表格
+     * deletefile, 删除文件, 在删除文件以及在数据库中的记录
+     */
     app.get('/guidang*', checkLogin);
     app.get('/guidang*', function(req, res) {
-        // eg. url: /guidang/dev/?isdir=1, relpath = /dev/, isdir = 1
         var reqpath = urlencode.decode(req.path);
         var gd = '/guidang';
         var relpath = reqpath.substring(gd.length);
@@ -318,7 +323,6 @@ exports.route = function(app) {
     });
 
     function createFile(req, relpath, fnmae) {
-// console.log('create file');
         var fileid = req.body.fileid,
             filename = req.body.filename,
             filecategory = req.body.filecategory,
@@ -336,8 +340,9 @@ exports.route = function(app) {
         if( '' == filetime); //
         if( '' == saveperiod); //
         if( '' == confidentialitype); //
-// console.log("req.file.originalname: " + req.file.originalname);
-// console.log("input file name: " + filename);
+        /**
+         * 无论输入的文件名是什么,都会改成上传的文件的文件名
+         */
         if(req.file.originalname != filename) {
             filename = req.file.originalname;
         }
@@ -350,8 +355,9 @@ exports.route = function(app) {
             confidentialitype: confidentialitype
         });
         file.save();
-        // 当用户上传一个文件后, 先设置为store,这样可以在guidang中看到
-        // 用户就会觉得文件上传成功, 否则用户看不到上传的文件,会很奇怪的
+        // 当用户上传一个文件后, 先设置isstored=1,7秒后设置为0
+        // 这样可以在guidang中看到, 用户就会觉得文件上传成功
+        // 否则用户看不到上传的文件,会怀疑是否上传成功
         setTimeout(function() {
             file.store2unstore();
         }, 1000*7);
@@ -397,6 +403,9 @@ exports.route = function(app) {
         res.redirect(reqpath + '?isdir=1');
     });
 
+    /**
+     * 返回用户列表
+     */
     app.get('/yonghu', checkLogin);
     app.get('/yonghu', checkRoleAdmin);
     app.get('/yonghu', function(req, res) {
@@ -420,6 +429,9 @@ exports.route = function(app) {
         }
     });
 
+    /**
+     * 设置用户权限
+     */
     app.post('/yonghu', checkLogin);
     app.post('/yonghu', checkRoleAdmin);
     app.post('/yonghu', function(req, res) {
@@ -432,6 +444,9 @@ exports.route = function(app) {
         res.redirect('/yonghu');
     });
 
+    /**
+     * 查看借阅列表
+     */
     app.get('/jieyue', checkLogin);
     app.get('/jieyue', checkRoleManage);
     app.get('/jieyue', function(req, res) {
@@ -446,6 +461,13 @@ exports.route = function(app) {
         });
     });
 
+    // TODO 管理员可以增加一条借阅关系
+    app.post('/jieyue', function(req, res){});
+
+    /**
+     * TODO 增加针对时间,分类等的高级搜索
+     * 返回搜索结果
+     */
     app.get('/search', function(req, res) {
         var q = req.query.q;
         File.search(q, function(err, files) {

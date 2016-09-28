@@ -4,6 +4,10 @@
 
 var connection;
 
+/**
+ * user表的属性
+ * id, name, email, password, role
+ */
 function User(user) {
     this.name = user.name;
     this.password = user.password;
